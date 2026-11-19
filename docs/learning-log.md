@@ -56,4 +56,8 @@ A short record of what I built, why, and how I'd explain it in an interview.
 - **Interview Q&A:** *"Why are tags important in FinOps?"*
   → Tags show who owns each resource and which project it belongs to, so costs can be tracked and untagged waste can be found.
 
----
+---## Phase 2: Client brief (19 Nov 2026)
+- **What:** Wrote a one-page client brief for a fictional UK insurer: problem, objectives, key questions, data sources, scope, deliverables and success criteria.
+- **Why:** Real data projects start by agreeing the business problem, so the work answers the right questions and has clear "done" criteria.
+- **Interview Q&A:** *"How do you start a new data project?"*
+  → I agree the business problem and the key questions with stakeholders first, then define scope, data sources and success criteria before building anything.
