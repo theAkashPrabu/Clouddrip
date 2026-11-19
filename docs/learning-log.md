@@ -36,4 +36,24 @@ A short record of what I built, why, and how I'd explain it in an interview.
 - **Interview Q&A:** *"How do you make a Python project reproducible?"*
   → A virtual environment for isolation, pinned versions in `requirements.txt`, and the venv kept out of Git. Anyone can rebuild with `pip install -r requirements.txt`.
 
+---## Phase 1: Azure setup (19 Nov 2026)
+
+### 1.1 Checked the existing Azure account
+- **What:** Used my existing Azure free account (£150 credit, expires 4 Dec 2026) and confirmed no leftover resources were running.
+- **Why:** Leftover resources quietly use credit, so the first job is always "what's already running?"
+- **Interview Q&A:** *"What's the first thing you check in a cloud account?"*
+  → What's already running and what it costs, before building anything new.
+
+### 1.2 Created a £5 budget alert
+- **What:** Created `clouddrip-budget` (£5/month) on the subscription, with alerts at 50% and 100% actual spend and 100% forecasted spend.
+- **Why:** To get an early warning before costs grow. Budgets send alerts; they don't stop spending.
+- **Interview Q&A:** *"Does an Azure budget stop resources when it's exceeded?"*
+  → No. A budget only sends alerts. To stop spend you need actions like automation or the free account's spending limit.
+
+### 1.3 Created a tagged resource group
+- **What:** Created `rg-clouddrip-dev` in UK South with tags `project`, `owner` and `environment`.
+- **Why:** One folder for all project resources: easy cost tracking, and one-click clean-up at the end. UK South keeps UK data in the UK.
+- **Interview Q&A:** *"Why are tags important in FinOps?"*
+  → Tags show who owns each resource and which project it belongs to, so costs can be tracked and untagged waste can be found.
+
 ---
