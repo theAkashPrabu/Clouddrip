@@ -61,3 +61,42 @@ A short record of what I built, why, and how I'd explain it in an interview.
 - **Why:** Real data projects start by agreeing the business problem, so the work answers the right questions and has clear "done" criteria.
 - **Interview Q&A:** *"How do you start a new data project?"*
   → I agree the business problem and the key questions with stakeholders first, then define scope, data sources and success criteria before building anything.
+## Phase 3.1 – Carbon intensity data 🌍 (19 Nov 2026)
+
+**What I did**
+Today I wrote my first ingestion script, `carbon_intensity.py`.
+It calls the National Grid Carbon Intensity API and gets the last 24 hours
+of data for all UK regions. That's 48 half-hour slots. Then it saves the raw
+JSON file in `data/bronze/carbon_intensity/` inside a folder with today's date.
+
+**Why I did it this way**
+Bronze is like keeping the original receipt 🧾. I don't change anything in it.
+If I make a mistake later when cleaning the data, I can just go back to
+these files. No need to call the API again.
+
+**My decision**
+I chose to save the files on my laptop first, not straight into Azure.
+It felt like the safer option instead of going to Azure and getting stuck
+in the middle. So I started with the easier one. I'll move it to Azure
+storage in Phase 6.
+
+**Problems I faced (and how I fixed them) 🛠️**
+- I typed the terminal prompt itself as a command 😅 and got
+  `zsh: parse error`. Now I know the prompt is just the terminal saying
+  "I'm ready". Also, I have to turn on `.venv` every time I open a new terminal.
+- I ran the script before saving it and got `No such file or directory`.
+  The white dot ● on the tab means the file isn't saved yet. Cmd + S first!
+- I got `IndentationError: unexpected indent` because I put extra spaces
+  on one line. In Python, spaces really matter. The red squiggle line
+  warns you before you even run it.
+
+**Something interesting I noticed 💡**
+At 2am, North Scotland's carbon intensity was 0, because it was mostly wind
+and hydro power. So where and when you run something really does change
+the CO₂.
+
+**Interview Q&A 🎤**
+Q: Why didn't you clean the data as soon as you downloaded it?
+A: I keep the raw data as it is in Bronze, so I can always go back to it
+and check where any number came from. Cleaning happens in the next step,
+Silver.
