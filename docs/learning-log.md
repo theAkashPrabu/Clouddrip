@@ -100,3 +100,49 @@ Q: Why didn't you clean the data as soon as you downloaded it?
 A: I keep the raw data as it is in Bronze, so I can always go back to it
 and check where any number came from. Cleaning happens in the next step,
 Silver.
+
+## Phase 3.2 – Azure prices + FOCUS sample 💷🧾 (20 Nov 2026)
+
+**What I did**
+I wrote two more ingestion scripts.
+- `azure_prices.py` downloads Azure prices in £ for UK South and UK West,
+  for Virtual Machines, Storage and SQL Database. I got 16,706 prices.
+- `focus_sample.py` downloads a real sample cloud bill in FOCUS format
+  (10,000 rows) from the FinOps Foundation GitHub.
+Now all 3 real data sources are saved in Bronze 🥉
+
+**New things I learned**
+- **Pages:** the Azure API only gives 1,000 rows at a time, like a book.
+  Each page has a link to the next page. My `while` loop keeps going until
+  there's no next link, then it stops by itself 📖
+- **Loop inside a loop:** for each region, go through each service.
+  2 regions × 3 services = 6 combinations.
+- **"wb":** saves the file byte for byte, so it's an exact copy of the real data.
+
+**My decisions**
+1. Prices: I picked VMs + Storage + SQL (not just VMs). Companies waste money
+   in all of these, I learn more Azure, and the dashboard looks better.
+2. Too many requests: I picked pause + retry. The small pause stops most
+   errors, and the retry handles the rest, so the script doesn't crash
+   halfway. Prevention + cure 💊
+3. Bill data: I checked the real FOCUS sample first. Only 491 rows were Azure,
+   all in US regions, in USD, from 2024. No UK at all 😕 So I'll use the real
+   file to learn the proper column names, and make a simulated bill for my
+   UK client using the same columns and real Azure prices.
+
+**Problems I faced 🛠️**
+- `429 Too Many Requests`. I ran the script twice quickly and Azure told
+  me to slow down. The script stopped and saved nothing broken, so
+  `raise_for_status()` did its job. Then I added wait + retry.
+- I put `import time` at the bottom of the file. Imports must go at the top,
+  because Python reads from top to bottom 🧰
+- `NameError`: I used `folder` before creating it (the lines were only comments).
+- `AttributeError`: I typed the `______` blanks into the code literally 😅
+- A few times I ran old code because I didn't save. Always check the ● first!
+- Bonus surprise: the Carbon API gave **200 OK even for a wrong web address**.
+  So a 200 doesn't always mean good data. I need data checks later.
+
+**Interview Q&A 🎤**
+Q: How do you handle API rate limits?
+A: I add a small pause between requests, and if the API still returns 429,
+my script waits and retries the same page instead of crashing.
