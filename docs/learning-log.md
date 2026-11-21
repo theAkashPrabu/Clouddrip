@@ -146,3 +146,41 @@ Now all 3 real data sources are saved in Bronze 🥉
 Q: How do you handle API rate limits?
 A: I add a small pause between requests, and if the API still returns 429,
 my script waits and retries the same page instead of crashing.
+
+## Phase 3.3 – Making Harbourline's bill 🏢🧾 (21 Nov 2026)
+
+**What I did**
+I explored the Azure prices with pandas 🐼 and then wrote
+`generate_harbourline_bill.py`. It creates one month (October 2026) of
+Azure bills for my client, using the real FOCUS column names and real
+Azure prices. Result: 8,263 rows, about £40k for the month.
+This bill is simulated, but the prices are real.
+
+**My decisions**
+- Bill size: about £40k a month, the same as my client brief, with around
+  £10k of hidden waste (close to the 29% from Flexera).
+- Hidden waste: idle VMs 😴, oversized VMs 🐘, dev machines left on at
+  night and weekends 🌙, and VMs in two regions so I can compare carbon 🌍.
+
+**New things I learned**
+- VM price doubles when the CPUs double. UK West is about 4–5% more
+  expensive than UK South.
+- The SQL price list was messy: different hardware types, extras and
+  even duplicate rows. Real data needs careful filtering.
+- `random.seed(42)` makes the random numbers the same every run, so my
+  results don't change 🎲
+- The "behaviour" column is my answer key. It's not in the bill, because
+  real bills don't say which VMs are wasted. My analysis has to find it 🕵️
+- Disks still cost money even when the VM is switched off 💾
+
+**Problems I faced 🛠️**
+- `NameError` again: I put `save_to_bronze` after the `if __name__` block.
+  Python reads top to bottom, so functions first, run code last.
+- The VS Code terminal froze with a white bar. Fixed it with
+  Cmd + Shift + P → Reload Window. Not every problem is in my code 😄
+
+**Interview Q&A 🎤**
+Q: Your client data is simulated. Why should I trust it?
+A: I checked the public FOCUS sample first, but it was US regions and USD,
+with no UK data. So I generated a bill with the real FOCUS columns and real
+Azure UK prices, and I'm clear in my README that it's simulated.
