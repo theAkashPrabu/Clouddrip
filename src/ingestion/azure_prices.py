@@ -45,9 +45,6 @@ def fetch_prices(region, service):
 
 
 
-
-
-        
         response.raise_for_status()
         data = response.json()
 
