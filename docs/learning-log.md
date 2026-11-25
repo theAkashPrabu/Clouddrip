@@ -184,3 +184,52 @@ Q: Your client data is simulated. Why should I trust it?
 A: I checked the public FOCUS sample first, but it was US regions and USD,
 with no UK data. So I generated a bill with the real FOCUS columns and real
 Azure UK prices, and I'm clear in my README that it's simulated.
+
+
+---
+
+## Phase 4: Cleaning (Silver) 🥈
+*22–25 Nov 2026*
+
+### What I did
+I turned my 4 raw Bronze datasets into clean, typed Silver tables, saved as Parquet in `data/silver/`.
+
+| Script | What it does | Result |
+|---|---|---|
+| `src/transform/clean_harbourline_bill.py` | Dates from text to real dates, split the Tags JSON into columns, quality checks | 8,263 rows, £39,985.10, 0 duplicates |
+| `src/transform/clean_carbon_intensity.py` | Flattened the nested JSON (boxes inside boxes 📦) into 2 tables | Intensity 864 rows + generation mix 7,776 rows |
+| `src/transform/clean_azure_prices.py` | Filtered 16,706 price rows down to just what Harbourline uses | 42 rows, one price per item |
+| `tests/check_focus_columns.py` | Checked my bill against the real FOCUS standard | ✅ 31 columns match, my 4 extras all start with `x_` |
+
+### Why Silver?
+Bronze is like the shopping bags straight from the shop 🛍️. I never change it, so I can always go back. Silver is the veg washed, chopped and put in the fridge box 🧺: clean and ready to cook. That's why Bronze gets a new timestamped file each run (history), but Silver just overwrites (latest clean copy).
+
+### My decisions 🧭
+1. **Parquet, not CSV**, because it's the Azure standard and dates stay as dates. I proved it: I read the file back and it was still `datetime`. With CSV it would come back as text.
+2. **UK South → London (region 13), UK West → South Wales (region 7)**, because those are the exact data centre locations, more precise than "England" or "Wales".
+3. **Kept the generation mix** as a second table, so the dashboard can show *why* a region is green or dirty.
+4. **Followed the FOCUS `x_` rule** for my own columns (`x_ChargeDate`, `x_Environment`, `x_Team`), to stay with the standard.
+
+### Things I found in the data 🔍
+- **UK West is about 4.5% more expensive than UK South** for the same VM.
+- **UK West also had dirtier electricity**: 334 g CO₂/kWh vs 187 in London at the same time. So moving workloads from UK West to UK South saves money AND carbon 💷🌍
+- North Scotland was **0 g/kWh** with 99.6% wind 🌬️
+- I expected 17 carbon regions but the real data had **18** (the extra one is GB as a whole). Lesson: check the real data, don't just trust what you expect.
+- I checked my row counts by hand: dev 2,187 + prod 6,076 = 8,263 ✅, matching exactly what the generator should make.
+
+### Problems I hit and how I fixed them 🐛
+- **Mac overheating**: I hadn't shut down in 3 weeks. I saved and committed everything first, then did a proper shutdown.
+- **AttributeError: pandas has no attribute `______`**: I typed the placeholder blank literally (again 😅). "Has no attribute X" means it can't find anything called X.
+- **Old output showing**: I ran the file before saving (● on the tab).
+- **Stuck in the git diff screen**: it was the `less` viewer. Press `q` to quit, or use `git --no-pager diff`.
+- **`[Errno 2] No such file or directory`**: I'd saved my new file in the project root, not in `src/transform`. Fixed with `mv` and `rm`. Now I check the path above the code before saving.
+- **IndentationError: expected an indented block**: I pasted one function inside another function. Every `def` must start at the far left.
+- **7 problems after pasting**: pasting messed up the spaces. Python uses spaces to know what's inside a function.
+- **NameError: function not defined**: I deleted a function and forgot to put it back.
+
+### Interview Q&A 🎤
+**Q: Why did you use Parquet instead of CSV for your Silver layer?**
+A: Parquet keeps the data types, so dates stay dates and numbers stay numbers. It's compressed and faster to read, and it's the standard format in Azure Data Lake and Fabric. I tested it by reading the file back and checking the date column was still a datetime.
+
+**Q: How did you handle the nested JSON from the Carbon Intensity API?**
+A: I used `pd.json_normalize`. `record_path` tells it which list to unpack into rows (the regions), and `meta` copies the parent values (the half-hour start and end time) onto every row. For the generation mix, which is two levels deep, I gave `record_path` two steps: regions, then generationmix.
