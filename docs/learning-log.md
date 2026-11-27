@@ -233,3 +233,48 @@ A: Parquet keeps the data types, so dates stay dates and numbers stay numbers. I
 
 **Q: How did you handle the nested JSON from the Carbon Intensity API?**
 A: I used `pd.json_normalize`. `record_path` tells it which list to unpack into rows (the regions), and `meta` copies the parent values (the half-hour start and end time) onto every row. For the generation mix, which is two levels deep, I gave `record_path` two steps: regions, then generationmix.
+
+## Phase 5: Gold layer in Azure SQL ⭐ (25–27 Nov 2026)
+
+**What I did**
+I created a free Azure SQL database (serverless) and built a star schema in it 🌟
+Then I wrote a Python loader that moves my 4 Silver Parquet files into 7 tables, and checks the row counts automatically.
+
+**My decisions (and why)**
+- 🌍 **Region = Sweden Central.** UK South, UK West and North Europe were all blocked for my trial subscription. Sweden worked first. The DB location doesn't change my analysis, because I still compare the client's VMs in uksouth vs ukwest.
+- 🛠️ **SQL in VS Code, Python only for loading (B).** I want to really practise SQL, so I write and run the SQL myself. Python is just the "delivery van" for 8,000+ rows.
+- 🍺 **Homebrew + ODBC Driver 18 (A).** pyodbc is the standard way companies connect Python to SQL Server.
+- 📅 **Cost fact = one resource per day (A).** I need daily patterns, like dev machines left on at weekends.
+- 🌱 **Carbon = half-hourly fact + a daily view (B).** More detail, plus I got to practise writing a SQL view.
+- 💷 **Separate dim_price table (A).** So later I can calculate in SQL what a smaller VM would cost.
+
+**Result**
+| Table | Rows |
+|---|---|
+| dim_date | 33 |
+| dim_region | 18 |
+| dim_price | 42 |
+| dim_resource | 268 |
+| fact_daily_cost | 8,263 |
+| fact_carbon_intensity | 864 |
+| fact_generation_mix | 7,776 |
+
+All 7 checks passed ✅ and the results are saved in my `dq_log` table.
+Total in SQL £39,985.15 vs Silver £39,985.10: a 5p difference because SQL rounds every row to 4 decimal places (DECIMAL(18,4)).
+
+**Problems I hit (and fixed) 🐛**
+- Azure said "your subscription does not have access" for UK regions, so I tried other regions until Sweden Central worked.
+- First connection timed out at "post-login". The serverless DB was asleep (auto-pause), so I raised the timeout to 90 seconds. It happened again the next day with Python ("Login timeout expired"), and running it again fixed it.
+- `brew: command not found`: I had no Homebrew, so I installed it and ran the PATH "next steps".
+- Homebrew refused the Microsoft tap as "untrusted", so I trusted only the msodbcsql18 formula.
+- A typo got stuck onto the next line in the terminal (`msodbcsql1brew`). Lesson: click an empty prompt before pasting.
+- I accidentally saved my test query as a file in the root, so I deleted it (the red strikethrough tab = deleted file).
+- VS Code showed 14 "Invalid object name" errors, but the query worked! The IntelliSense cache was older than my tables, so I refreshed it.
+- pandas 3 warning: `dayofweek` is deprecated, so I changed it to `day_of_week`.
+- My password showed in a screenshot (eye icon on), so I'll keep it hidden next time 🔐
+
+**Interview Q&A 🎤**
+**Q: What's the difference between a fact table and a dimension table?**
+A: A fact table stores the events with numbers, like one row per resource per day with the cost and hours. Dimension tables describe those events, like the date, the region and the resource details. The fact sits in the middle and joins to the dimensions, which is why it's called a star schema.
+
+🔎 My first SQL insight: dev machines cost **£1,514 at weekends** when nobody is working. 67 dev resources still run at weekends vs 72 on weekdays (only the 5 scheduled hl-test VMs switch off). That's waste type D, and Phase 7 will measure it properly.
